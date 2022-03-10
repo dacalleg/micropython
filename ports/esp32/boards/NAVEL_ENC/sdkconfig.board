@@ -30,6 +30,12 @@ CONFIG_SECURE_ENABLE_SECURE_ROM_DL_MODE=y
 # end of Security features
 
 #
+# NVS
+#
+# CONFIG_NVS_ENCRYPTION is not set
+# end of NVS
+
+#
 # Bootloader config
 #
 CONFIG_BOOTLOADER_OFFSET_IN_FLASH=0x1000
