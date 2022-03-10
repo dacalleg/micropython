@@ -3,7 +3,7 @@ set(SDKCONFIG_DEFAULTS
     boards/sdkconfig.ble
     boards/sdkconfig.spiram
     boards/sdkconfig.240mhz
-    boards/NAVEL/sdkconfig.board
+    boards/NAVEL_ENC/sdkconfig.board
 )
 
 if(NOT MICROPY_FROZEN_MANIFEST)
