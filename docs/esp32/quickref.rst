@@ -224,14 +224,18 @@ Use the :ref:`machine.PWM <machine.PWM>` class::
     from machine import Pin, PWM
 
     pwm0 = PWM(Pin(0))         # create PWM object from a pin
-    pwm0.freq()                # get current frequency (default 5kHz)
+    freq = pwm0.freq()         # get current frequency (default 5kHz)
     pwm0.freq(1000)            # set PWM frequency from 1Hz to 40MHz
-    pwm0.duty()                # get current duty cycle, range 0-1023 (default 512, 50%)
+
+    duty = pwm0.duty()         # get current duty cycle, range 0-1023 (default 512, 50%)
     pwm0.duty(256)             # set duty cycle from 0 to 1023 as a ratio duty/1023, (now 25%)
+
+    duty_u16 = pwm0.duty_u16() # get current duty cycle, range 0-65535
     pwm0.duty_u16(2**16*3//4)  # set duty cycle from 0 to 65535 as a ratio duty_u16/65535, (now 75%)
-    pwm0.duty_u16()            # get current duty cycle, range 0-65535
+
+    duty_ns = pwm0.duty_ns()   # get current pulse width in ns
     pwm0.duty_ns(250_000)      # set pulse width in nanoseconds from 0 to 1_000_000_000/freq, (now 25%)
-    pwm0.duty_ns()             # get current pulse width in ns
+
     pwm0.deinit()              # turn off PWM on the pin
 
     pwm2 = PWM(Pin(2), freq=20000, duty=512)  # create and configure in one go
@@ -246,7 +250,7 @@ Number of groups (speed modes)                                2         1       
 Number of timers per group                                    4         4         4
 Number of channels per group                                  8         8         6
 -----------------------------------------------------  --------  --------  --------
-Different of PWM frequencies (groups * timers)                8         4         4
+Different PWM frequencies (groups * timers)                   8         4         4
 Total PWM channels (Pins, duties) (groups * channels)        16         8         6
 =====================================================  ========  ========  ========
 
@@ -505,7 +509,7 @@ The RMT is ESP32-specific and allows generation of accurate digital pulses with
     r = esp32.RMT(0, pin=Pin(18), clock_div=8)
     r   # RMT(channel=0, pin=18, source_freq=80000000, clock_div=8)
     # The channel resolution is 100ns (1/(source_freq/clock_div)).
-    r.write_pulses((1, 20, 2, 40), start=0) # Send 0 for 100ns, 1 for 2000ns, 0 for 200ns, 1 for 4000ns
+    r.write_pulses((1, 20, 2, 40), 0) # Send 0 for 100ns, 1 for 2000ns, 0 for 200ns, 1 for 4000ns
 
 OneWire driver
 --------------
@@ -568,6 +572,9 @@ For low-level driving of a NeoPixel::
    units. It is possible to use alternative timing to control other (typically
    400kHz) devices by passing ``timing=0`` when constructing the
    ``NeoPixel`` object.
+
+The low-level driver uses an RMT channel by default.  To configure this see
+`RMT.bitstream_channel`.
 
 APA102 (DotStar) uses a different driver as it has an additional clock pin.
 

@@ -28,7 +28,7 @@
 
 // Current version of MicroPython
 #define MICROPY_VERSION_MAJOR 1
-#define MICROPY_VERSION_MINOR 17
+#define MICROPY_VERSION_MINOR 18
 #define MICROPY_VERSION_MICRO 0
 
 // Combined version as a 32-bit number for convenience
@@ -1308,7 +1308,7 @@ typedef double mp_float_t;
 
 // Whether to initialise "sys.path" and "sys.argv" to their defaults in mp_init()
 #ifndef MICROPY_PY_SYS_PATH_ARGV_DEFAULTS
-#define MICROPY_PY_SYS_PATH_ARGV_DEFAULTS (1)
+#define MICROPY_PY_SYS_PATH_ARGV_DEFAULTS (MICROPY_PY_SYS)
 #endif
 
 // Whether to provide "sys.maxsize" constant
@@ -1552,7 +1552,10 @@ typedef double mp_float_t;
 
 #ifndef MICROPY_PY_USSL
 #define MICROPY_PY_USSL (0)
+#endif
+
 // Whether to add finaliser code to ussl objects
+#ifndef MICROPY_PY_USSL_FINALISER
 #define MICROPY_PY_USSL_FINALISER (0)
 #endif
 
@@ -1579,6 +1582,12 @@ typedef double mp_float_t;
 // Additional builtin function definitions - see modbuiltins.c:mp_module_builtins_globals_table for format.
 #ifndef MICROPY_PORT_BUILTINS
 #define MICROPY_PORT_BUILTINS
+#endif
+
+// Additional builtin function definitions for extension by command-line, boards or variants.
+// See modbuiltins.c:mp_module_builtins_globals_table for format.
+#ifndef MICROPY_PORT_EXTRA_BUILTINS
+#define MICROPY_PORT_EXTRA_BUILTINS
 #endif
 
 // Additional builtin module definitions - see objmodule.c:mp_builtin_module_table for format.
