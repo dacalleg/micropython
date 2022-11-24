@@ -1,3 +1,2 @@
 #define MICROPY_HW_BOARD_NAME "NAVEL by Micronova"
 #define MICROPY_HW_MCU_NAME "ESP32"
-#define MICROPY_SSL_AXTLS 0
