@@ -173,19 +173,19 @@ STATIC int read_byte(mp_reader_t *reader) {
     if(!enc)
         return reader->readbyte(reader->data);
     byte ret = reader->readbyte(reader->data) ^ key[key_index];
-    key_index = (key_index + 1);
+    key_index = (key_index + 1) % 512;
     return ret;
 }
 
 STATIC void read_bytes(mp_reader_t *reader, byte *buf, size_t len) {
     while (len-- > 0) {
-        if(!enc)
+        if(!enc){
             *buf++ = reader->readbyte(reader->data);
+        }
         else{
-            *buf++ = reader->readbyte(reader->data) ^ key[key_index];
+            *buf++ = (reader->readbyte(reader->data) ^ key[key_index]);
             key_index = (key_index + 1) % 512;
         }
-            
     }
 }
 
@@ -196,8 +196,7 @@ STATIC size_t read_uint(mp_reader_t *reader) {
         if(enc){
             b = b ^ key[key_index];
             key_index = (key_index + 1) % 512;
-        }
-            
+        }            
         unum = (unum << 7) | (b & 0x7f);
         if ((b & 0x80) == 0) {
             break;
@@ -223,6 +222,7 @@ STATIC qstr load_qstr(mp_reader_t *reader) {
 
 STATIC mp_obj_t load_obj(mp_reader_t *reader) {
     byte obj_type = read_byte(reader);
+
     #if MICROPY_EMIT_MACHINE_CODE
     if (obj_type == MP_PERSISTENT_OBJ_FUN_TABLE) {
         return MP_OBJ_FROM_PTR(&mp_fun_table);
@@ -440,30 +440,28 @@ STATIC mp_raw_code_t *load_raw_code(mp_reader_t *reader, mp_module_context_t *co
 mp_compiled_module_t mp_raw_code_load(mp_reader_t *reader, mp_module_context_t *context) {
     byte header[4];
     read_bytes(reader, header, sizeof(header));
+    enc = header[0] == 'K';
     if(header[0] == 'K'){
-        enc = true;
-        key_index = 0;
         header[0] = 'M';
     }
     if (header[0] != 'M'
         || header[1] != MPY_VERSION
         || MPY_FEATURE_DECODE_FLAGS(header[2]) != MPY_FEATURE_FLAGS
         || header[3] > MP_SMALL_INT_BITS) {
-        if(enc)
-            enc = false;
+        enc = false;    
         mp_raise_ValueError(MP_ERROR_TEXT("incompatible .mpy file"));
     }
     if (MPY_FEATURE_DECODE_ARCH(header[2]) != MP_NATIVE_ARCH_NONE) {
-        if(enc)
-            enc = false;
         byte arch = MPY_FEATURE_DECODE_ARCH(header[2]);
         if (!MPY_FEATURE_ARCH_TEST(arch)) {
+            enc = false;
             mp_raise_ValueError(MP_ERROR_TEXT("incompatible .mpy arch"));
         }
     }
 
     size_t n_qstr = read_uint(reader);
     size_t n_obj = read_uint(reader);
+
     mp_module_context_alloc_tables(context, n_qstr, n_obj);
 
     // Load qstrs.
@@ -488,13 +486,14 @@ mp_compiled_module_t mp_raw_code_load(mp_reader_t *reader, mp_module_context_t *
     #endif
 
     reader->close(reader->data);
-    if(enc)
-        enc = false;
+    enc = false;
     return cm2;
 }
 
 mp_compiled_module_t mp_raw_code_load_mem(const byte *buf, size_t len, mp_module_context_t *context) {
     mp_reader_t reader;
+    key_index = 0;
+    enc = false;
     mp_reader_new_mem(&reader, buf, len, 0);
     return mp_raw_code_load(&reader, context);
 }
@@ -503,6 +502,8 @@ mp_compiled_module_t mp_raw_code_load_mem(const byte *buf, size_t len, mp_module
 
 mp_compiled_module_t mp_raw_code_load_file(const char *filename, mp_module_context_t *context) {
     mp_reader_t reader;
+    key_index = 0;
+    enc = false;
     mp_reader_new_file(&reader, filename);
     return mp_raw_code_load(&reader, context);
 }
